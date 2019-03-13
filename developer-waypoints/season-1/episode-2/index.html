@@ -1,0 +1,49 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
+</head>
+
+<body style="margin: 0">
+    <div id="map" style="width: 100vw; height: 100vh"></div>
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+    <script>
+        const tiles = "https://1.base.maps.api.here.com/maptile/2.1/maptile/newest/normal.day/{z}/{x}/{y}/512/png8?app_id={appId}&app_code={appCode}";
+        const map = new L.Map("map", {
+            center: [37, -121],
+            zoom: 10,
+            layers: [L.tileLayer(tiles, { appId: "", appCode: "" })]
+        });
+        const marker1 = new L.Marker({ lat: 37, lon: -121 });
+        const marker2 = new L.Marker({ lat: 37.2, lon: -121.002 });
+        const marker3 = new L.Marker({ lat: 37.2, lon: -121.2 });
+        marker1.addTo(map);
+        marker2.addTo(map);
+        marker3.addTo(map);
+        const circle = new L.Circle(marker1.getLatLng(), { radius: 4000 });
+        circle.addTo(map);
+        const polyline = new L.Polyline([
+            marker1.getLatLng(),
+            marker2.getLatLng(),
+            marker3.getLatLng()
+        ], {
+                color: "#48DAD0",
+                weight: 5
+            });
+        polyline.addTo(map);
+        const polygon = new L.Polygon([
+            marker1.getLatLng(),
+            marker2.getLatLng(),
+            marker3.getLatLng()
+        ], {
+                color: "#673A93",
+                weight: 5
+            });
+        polygon.addTo(map);
+        const distance = marker1.getLatLng().distanceTo(marker2.getLatLng());
+        console.log(distance);
+        console.log(distance / 1609.344);
+    </script>
+</body>
+
+</html>
