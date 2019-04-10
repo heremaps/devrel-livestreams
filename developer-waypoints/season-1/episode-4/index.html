@@ -1,0 +1,206 @@
+<html>
+    <head></head>
+    <body style="margin: 0">
+        <div id="map" style="width: 100vw; height: 100vh"></div>
+        <script src="http://js.api.here.com/v3/3.0/mapsjs-core.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://js.api.here.com/v3/3.0/mapsjs-service.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://js.api.here.com/v3/3.0/mapsjs-mapevents.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://js.api.here.com/v3/3.0/mapsjs-places.js" type="text/javascript" charset="utf-8"></script>
+        <script>
+            const platform = new H.service.Platform({
+                "app_id": "",
+                "app_code": ""
+            });
+            const geocoderService = platform.getGeocodingService();
+            const search = new H.places.Search(platform.getPlacesService());
+            const routerService = platform.getRoutingService();
+            const geocoder = query => {
+                return new Promise((resolve, reject) => {
+                    geocoderService.geocode(
+                        {
+                            "searchtext": query
+                        },
+                        success => {
+                            resolve(success.Response.View[0].Result[0].Location.DisplayPosition);
+                        },
+                        error => {
+                            reject(error);
+                        }
+                    );
+                });
+            }
+            const places = (query, coords, radius) => {
+                return new Promise((resolve, reject) => {
+                    search.request(
+                        {
+                            q: query,
+                            in: coords.Latitude + "," + coords.Longitude + ";r=" + radius
+                        },
+                        {},
+                        success => {
+                            resolve(success.results.items);
+                        },
+                        error => {
+                            reject(error);
+                        }
+                    )
+                });
+            }
+            const calculateRoute = (start, finish) => {
+                return new Promise((resolve, reject) => {
+                    const params = {
+                        mode: "fastest;car;traffic:enabled",
+                        waypoint0: start.Latitude + "," + start.Longitude,
+                        waypoint1: finish.Latitude + "," + finish.Longitude,
+                        representation: "display"
+                    };
+                    routerService.calculateRoute(params, success => {
+                        resolve(success.response.route[0].shape);
+                    }, error => {
+                        reject(error);
+                    });
+                });
+            };
+            const calculateIsoline = (start, range) => {
+                return new Promise((resolve, reject) => {
+                    const params = {
+                        start: start.Latitude + "," + start.Longitude,
+                        mode: "fastest;car;traffic:enabled",
+                        departure: "now",
+                        rangeType: "time",
+                        range: range
+                    };
+                    routerService.calculateIsoline(params, success => {
+                        resolve(success.response.isoline[0].component[0].shape);
+                    }, error => {
+                        reject(error);
+                    });
+                });
+            };
+            const start = async () => {
+                const tracy = await geocoder("Tracy, CA");
+                const map = new H.Map(
+                    document.getElementById("map"),
+                    platform.createDefaultLayers().normal.map,
+                    {
+                        zoom: 10,
+                        center: { lat: tracy.Latitude, lng: tracy.Longitude }
+                    }
+                );
+                const mapEvents = new H.mapevents.MapEvents(map);
+                const behavior = new H.mapevents.Behavior(mapEvents);
+                const stockton = await geocoder("Stockton, CA");
+                const tracyMarker = new H.map.Marker({ lat: tracy.Latitude, lng: tracy.Longitude });
+                const stocktonMarker = new H.map.Marker({ lat: stockton.Latitude, lng: stockton.Longitude });
+                const tracyIsolineData = await calculateIsoline(tracy, 1000);
+                const tracyIsolineLineString = new H.geo.LineString();
+                tracyIsolineData.forEach(points => {
+                    let parts = points.split(",");
+                    tracyIsolineLineString.pushPoint({
+                        lat: parts[0],
+                        lng: parts[1]
+                    })
+                });
+                const tracyIsolinePolygon = new H.map.Polygon(
+                    tracyIsolineLineString,
+                    {
+                        style: {
+                            fillColor: "rgba(255, 0, 0, 0.5)"
+                        }
+                    }
+                );
+                const stocktonIsolineData = await calculateIsoline(stockton, 1000);
+                const stocktonIsolineLineString = new H.geo.LineString();
+                stocktonIsolineData.forEach(points => {
+                    let parts = points.split(",");
+                    stocktonIsolineLineString.pushPoint({
+                        lat: parts[0],
+                        lng: parts[1]
+                    })
+                });
+                const stocktonIsolinePolygon = new H.map.Polygon(
+                    stocktonIsolineLineString,
+                    {
+                        style: {
+                            fillColor: "rgba(0, 0, 255, 0.5)"
+                        }
+                    }
+                );
+                const mcdonalds = await places("mcdonalds", tracy, 30000);
+                const mcMarkers = [];
+                for (let i = 0; i < mcdonalds.length; i++) {
+                    const mcMarker = new H.map.Marker({
+                        lat: mcdonalds[i].position[0],
+                        lng: mcdonalds[i].position[1]
+                    });
+                    mcMarker.addEventListener("tap", async event => {
+                        console.log(event.target.getPosition());
+                        const pos = event.target.getPosition();
+                        const ourTracyRoute = await calculateRoute(tracy, {
+                            Latitude: pos.lat,
+                            Longitude: pos.lng
+                        });
+                        const ourStocktonRoute = await calculateRoute(stockton, {
+                            Latitude: pos.lat,
+                            Longitude: pos.lng
+                        });
+                        const ourTracyLineString = new H.geo.LineString();
+                        ourTracyRoute.forEach(points => {
+                            let parts = points.split(",");
+                            ourTracyLineString.pushPoint({
+                                lat: parts[0],
+                                lng: parts[1]
+                            });
+                        });
+                        const ourTracyPolyline = new H.map.Polyline(
+                            ourTracyLineString,
+                            {
+                                style: {
+                                    lineWidth: 5,
+                                    strokeColor: "rgb(0, 255, 0)"
+                                }
+                            }
+                        );
+                        const ourStocktonLineString = new H.geo.LineString();
+                        ourStocktonRoute.forEach(points => {
+                            let parts = points.split(",");
+                            ourStocktonLineString.pushPoint({
+                                lat: parts[0],
+                                lng: parts[1]
+                            });
+                        });
+                        const ourStocktonPolyline = new H.map.Polyline(
+                            ourStocktonLineString,
+                            {
+                                style: {
+                                    lineWidth: 5,
+                                    strokeColor: "rgb(255, 255, 0)"
+                                }
+                            }
+                        );
+                        map.addObjects([ourTracyPolyline, ourStocktonPolyline]);
+                    });
+                    mcMarkers.push(mcMarker);
+                }
+                map.addObjects([
+                    tracyMarker, 
+                    stocktonMarker, 
+                    tracyIsolinePolygon, 
+                    stocktonIsolinePolygon,
+                    ...mcMarkers
+                ]);
+            }
+            start();
+        </script>
+    </body>
+</html>
+
+
+
+
+
+
+
+
+
+
