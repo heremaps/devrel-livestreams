@@ -1,0 +1,56 @@
+<html>
+    <head></head>
+    <body style="margin: 0">
+        <div id="map" style="width: 100vw; height: 100vh"></div>
+        <script src="http://js.api.here.com/v3/3.0/mapsjs-core.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://js.api.here.com/v3/3.0/mapsjs-service.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://js.api.here.com/v3/3.0/mapsjs-mapevents.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://js.api.here.com/v3/3.0/mapsjs-places.js" type="text/javascript" charset="utf-8"></script>
+        <script src="config.js"></script>
+        <script src="app.js"></script>
+        <script>
+            const here = new HereDev(config);
+            const start = async () => {
+                const tracy = await here.geocoder("Tracy, CA");
+                const stockton = await here.geocoder("Stockton, CA");
+                here.createMap(document.getElementById("map"), tracy, 10);
+                here.dropMarker(tracy);
+                here.dropMarker(stockton);
+                const tracyIsolineData = await here.calculateIsoline(tracy, 1000);
+                const stocktonIsolineData = await here.calculateIsoline(stockton, 1000);
+                here.drawPolygon(tracyIsolineData);
+                here.drawPolygon(stocktonIsolineData);
+                const mcdonalds = await here.places("mcdonalds", tracy, 30000);
+                mcdonalds.forEach(mcd => {
+                    here.dropMarker({
+                        lat: mcd.position[0],
+                        lng: mcd.position[1]
+                    }, async event => {
+                        here.clearPolylines();
+                        const ourTracyRoute = await here.calculateRoute(
+                            tracy, 
+                            event.target.getPosition()
+                        );
+                        const ourStocktonRoute = await here.calculateRoute(
+                            stockton, 
+                            event.target.getPosition()
+                        );
+                        here.drawPolyline(ourTracyRoute);
+                        here.drawPolyline(ourStocktonRoute);
+                    });
+                });
+            };
+            start();
+        </script>
+    </body>
+</html>
+
+
+
+
+
+
+
+
+
+
