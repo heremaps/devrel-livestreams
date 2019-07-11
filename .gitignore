@@ -1,4 +1,4 @@
 .DS_Store*
 Thumb.db*
-
+node_modules
 config.js
