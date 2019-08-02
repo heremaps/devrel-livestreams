@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head></head>
+    <body>
+        <input type="text" id="query" />
+        <button type="button" onclick="search()">Search</button>
+        <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js" type="text/javascript" charset="utf-8"></script>
+        <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js" type="text/javascript" charset="utf-8"></script>
+        <script>
+            const platform = new H.service.Platform({
+                "apikey": "your-apikey"
+            });
+            const search = () => {
+                const geocodingService = platform.getGeocodingService();
+                geocodingService.geocode(
+                    {
+                        "searchtext": document.getElementById("query").value
+                    },
+                    data => {
+                        console.log(data);
+                    },
+                    error => {
+                        console.error(error);
+                    }
+                )
+            };
+        </script>
+    </body>
+</html>
