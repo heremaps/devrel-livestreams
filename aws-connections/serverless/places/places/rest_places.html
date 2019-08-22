@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>REST - Places</title>
+</head>
+<body>
+    <h1>Places - REST</h1>
+    <div id="display"></div>
+    <script>
+        const APP_ID = "your-app-id";
+        const APP_CODE = "your-app-code";
+        const API = "https://places.api.here.com/places/v1/discover/search";
+        const display = document.getElementById("display");
+        const atin = "in";
+        const geo = "37.7397,-121.4252;r=3000";
+        const q = "doc";
+        let items = [];
+
+        fetch(`${API}?q=${q}&${atin}=${geo}&app_id=${APP_ID}&app_code=${APP_CODE}`)
+            .then(response => response.json())
+            .then(response => {
+                console.log(response);
+                items = response.results.items || response.results;
+                items.forEach(item => {
+                    if (item.resultType) {
+                        if (item.resultType == "category") {
+                            display.innerHTML += `<div>CATEGORY: ${item.title} - ${item.category}</div><hr />`;
+                        }
+                        if (item.resultType == "place") {
+                            display.innerHTML += `<div>${item.title} <br /> ${item.vicinity}</div><hr />`;
+                        }
+                        if (item.resultType == "query") {
+                            display.innerHTML += `<div>${item.completion}</div><hr />`;
+                        }
+                    } else {
+                        display.innerHTML += `<div>${item.title} <br /> ${item.vicinity}</div><hr />`;
+                    }
+                });
+
+            }, error => {
+                console.log(error);
+            });
+    </script>
+</body>
+</html>

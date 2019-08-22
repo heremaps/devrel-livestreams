@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>SAR - Places</title>
+    </head>
+    <body>
+    
+    <h1>Places - SAR</h1>
+    <code>Search:   </code><input type="text" value="" id="searchInput" name="searchInput" />
+    <button onclick="processForm()">Search</button> 
+    <hr />
+    <div id="display"></div>
+
+    <script> // ,==%2C   ;==%3B
+    const display = document.getElementById("display");
+    const api = "your-aws-api-gateway-id";
+    const atin = "in";
+    const geo = "37.794%2C-122.407%3Br=5000";
+    // "33.673,-112.119";   // Deer Valley, AZ 
+    // "37.794,-122.407";   // San Franciso, CA 
+    
+    function invokeGeoAPI(search) {
+        fetch(`https://${api}.execute-api.us-east-1.amazonaws.com/Stage/places?${atin}=${geo}&q=${search}`)
+            .then(response => response.json())
+            .then(response => {
+                console.log(response);
+                display.innerHTML = "";
+                let items = response.results.items || response.results;
+                displayItems(items);
+            });
+    }
+
+    function processForm() {
+        let search = document.getElementById("searchInput").value;
+        console.log(search);
+        if (search == "") {
+            alert("Need a search!");
+            return false;
+        }
+        invokeGeoAPI(search);
+    }
+
+    function displayItems(items) {
+        items.forEach(item => {
+            if (item.resultType) {
+                if (item.resultType=="category") {
+                    display.innerHTML += `<div>CATEGORY: ${item.title} - ${item.category}</div><hr />`;
+                }
+                if (item.resultType=="place") {
+                    display.innerHTML += `<div>${item.title} <br /> ${item.vicinity}</div><hr />`;
+                }
+                if (item.resultType=="query") {
+                    display.innerHTML += `<div>${item.completion}</div><hr />`;
+                }
+            } else {
+                display.innerHTML += `<div>${item.title} <br /> ${item.vicinity}</div><hr />`;
+            }
+        });
+    }
+
+    </script>
+    </body>
+</html>
