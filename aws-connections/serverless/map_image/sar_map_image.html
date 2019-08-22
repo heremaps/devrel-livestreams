@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    <title>Serverless</title>
+</head>
+<body>
+    <h1>Map via AWS SAR</h1>
+    <img id="mapImage" />
+    <script>
+    let m = {
+        'lat'       : 33.41808,
+        'lng'       : -111.9343,
+        'url'       : "https://{your-api-gateway-id}.execute-api.us-east-1.amazonaws.com/Stage/mapimage?",
+        'width'     : 600,
+        'height'    : 480,
+        'zoom'      : 11
+    };
+    let url =`${m.url}c=${m.lat},${m.lng}&w=${m.width}&h=${m.height}&z=${m.zoom}`;
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () { 
+        if (this.readyState == 4 && this.status == 200) {
+              let imgData = JSON.parse(this.responseText);   
+              document.getElementById("mapImage").src = 
+                `data:image/jpeg;base64,${imgData}`;
+          }
+      }
+      xhttp.open("GET", url, true);
+      xhttp.send();
+    </script>
+</body>
+</html>

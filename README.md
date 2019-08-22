@@ -2,11 +2,13 @@
 
 This repository has source code and resources related to the developer livestreams that appear on Twitch, YouTube, or any of the other various streaming networks.
 
+
 ## Available Streams
 
 The streams that are available are as follows:
 
-- [Developer Waypoints](https://www.twitch.tv/heredevs)
+- [HERE Developers on Twitch.tv](https://www.twitch.tv/heredev)
+- [On-Demand Episodes](https://www.youtube.com/playlist?list=PLTlZUhyLwZTcr5kukSrWjkwtM0WDOUsA5)
 
 ## Resources
 
