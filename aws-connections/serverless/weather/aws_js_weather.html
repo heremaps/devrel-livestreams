@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>AWS Weather</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" />
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
+</head>
+<body>
+    <div id="map" style="width: 100vw; height: 100vh; background: white;"></div>
+    <script>
+    const APIKEY = "your-api-key";
+    const AWS_API = "your-api-gateway-id";
+    const AWS_URL = `https://${AWS_API}.execute-api.us-east-1.amazonaws.com/Stage/weather`;
+
+    // Obtain reference to #mapContainer in DOM
+    let container = document.getElementById('map');
+    // Store initialized platform object
+    let platform = new H.service.Platform({apikey:APIKEY});
+    // Store reference to layers object
+    let layers = platform.createDefaultLayers();
+    // Create map object initialized with container and style
+    let map = new H.Map(container, layers.vector.normal.map, {
+        center: {lat:19.7519, lng:-99.1276},
+        zoom: 4,
+        pixelRatio: window.devicePixelRatio || 1
+    });
+    // Create behavior object initialized with map object
+    let behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+    // Store UI object associated with map object and layers object
+    let UI = H.ui.UI.createDefault(map, layers);
+    
+    // Construct URL and invoke AWS serverless API for Weather
+    function getWeather(lat,lng) {
+        let options = `product=observation&oneobservation=true&latitude=${lat}&longitude=${lng}`;
+        let url = `${AWS_URL}?${options}`;
+        fetch(url)
+        .then(response => response.json())
+        .then(response => 
+        {
+            console.log(response);
+            let observation = response.observations.location[0].observation[0];
+            alert(observation.description);
+        })
+        .catch(error => console.log(error));
+    }
+
+    // Capture of map coordinates and invoking getWeahter function
+    function initMapTap(map) {
+        map.addEventListener('tap', function (evt) {
+        var coord = map.screenToGeo(evt.currentPointer.viewportX,
+            evt.currentPointer.viewportY);
+        let lat = coord.lat;
+        let lng = coord.lng;
+        console.log('Coordinates:' + Math.abs(lat.toFixed(4)) +
+            ((lat > 0) ? 'N' : 'S') +
+            ' ' + Math.abs(lng.toFixed(4)) +
+            ((lng > 0) ? 'E' : 'W'));
+        getWeather(lat,lng);
+        });
+    }
+
+    initMapTap(map);
+    </script>
+</body>
+</html>

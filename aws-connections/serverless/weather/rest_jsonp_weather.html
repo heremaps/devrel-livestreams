@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>REST - Weather</title>
+    </head>
+    <body>
+        <h1>Weather - REST</h1>
+        <div id="display"></div>
+
+        <script>
+            let url = "https://weather.api.here.com/weather/1.0/report.json?product=observation&latitude=33.673&longitude=-112.119&app_id=tSXbAYr7C2G2JzFqITty&app_code=Af_oJSzqZ-zvR6WL0vmW2A&jsonpcallback=pro"
+            function pro(response) {
+                console.log(response);
+            }
+            function addScript(url) {
+                let s = document.createElement("script");
+                s.src = url;
+                document.body.appendChild(s);
+            }
+            addScript(url);
+        </script>
+    </body>
+</html>
