@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    <title>REST - Map Image</title>
+</head>
+<body>
+    <h1>Map via REST</h1>
+    <img id="mapImage" />
+    <script>
+      let m = {
+        'app_id'    : "your-app-id",
+        'app_code'  : "your-app-code",
+        'lat'       : 52.49422,
+        'lng'       : 13.37436,
+        'url'       : "https://image.maps.api.here.com/mia/1.6/mapview?",
+        'width'     : 600,
+        'height'    : 480,
+        'zoom'      : 10,
+        't'         : 14        
+      };
+      m.url += `app_id=${m.app_id}&app_code=${m.app_code}&c=${m.lat},${m.lng}&w=${m.width}&h=${m.height}&z=${m.zoom}&t=${m.t}`;
+      document.getElementById("mapImage").src = m.url;
+    </script>
+</body>
+</html>
