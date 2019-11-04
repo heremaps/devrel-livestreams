@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Azure - Places</title>
+    </head>
+    <body>
+    <h1>Places - Azure</h1>
+    <code>Search:   </code><input type="text" value="" id="searchInput" name="searchInput" />
+    <button onclick="processForm()">Search</button> 
+    <hr />
+    <div id="display"></div>
+    <script>
+    
+    // element on page where results will go
+    const display = document.getElementById("display");
+    const AZURE_FN = "your-azure-app-id";
+    const AZURE_PLACES_CODE = "your-places-function-code";
+    const API = "azurewebsites.net/api/places/v1/discover/explore";
+    let atin = "at";
+    let geo = "52.54435,13.35289"; // berlin
+
+    function invokeGeoAPI(search) {
+        let url = `https://${AZURE_FN}.${API}?${atin}=${geo}&size=10&cat=${search}&code=${AZURE_PLACES_CODE}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(response => {
+                console.log(response);
+                display.innerHTML = "";
+                let items = response.results.items || response.results;
+                // helper function to display results
+                displayItems(items);
+            });
+    }
+
+    function processForm() {
+        let search = document.getElementById("searchInput").value;
+        console.log(search);
+        if (search == "") {
+            alert("Need a search!");
+            return false;
+        }
+        invokeGeoAPI(search);
+    }
+
+    function displayItems(items) {
+        items.forEach(item => {
+            if (item.resultType) {
+                if (item.resultType=="category") {
+                    display.innerHTML += `<div>CATEGORY: ${item.title} - ${item.category}</div><hr />`;
+                }
+                if (item.resultType=="place") {
+                    display.innerHTML += `<div>${item.title} <br /> ${item.vicinity}</div><hr />`;
+                }
+                if (item.resultType=="query") {
+                    display.innerHTML += `<div>${item.completion}</div><hr />`;
+                }
+            } else {
+                display.innerHTML += `<div>${item.title} <br /> ${item.vicinity}</div><hr />`;
+            }
+            
+        });
+    }
+
+    </script>
+    </body>
+</html>
